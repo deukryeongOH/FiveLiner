@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>FiveLiner</title>
+	<style>
+		:root {
+			--bg: #0b0c0f;
+			--panel: #121418;
+			--panel-2: #161920;
+			--text: #e6e8ea;
+			--muted: #9aa3ad;
+			--accent: #00e384; /* 치지직 느낌의 네온 그린 */
+			--accent-2: #00c26e;
+			--danger: #ff4d4f;
+		}
+		html, body { height: 100%; }
+		body {
+			margin: 0;
+			background: radial-gradient(1200px 800px at 10% -10%, rgba(0, 227, 132, .08), transparent 60%),
+				linear-gradient(0deg, rgba(0,0,0,.2), rgba(0,0,0,.2)),
+				var(--bg);
+			color: var(--text);
+			font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
+		}
+		.header {
+			position: sticky; top: 0; z-index: 20;
+			background: rgba(15,17,22,.7);
+			backdrop-filter: saturate(150%) blur(8px);
+			border-bottom: 1px solid rgba(255,255,255,.06);
+		}
+		.header-inner {
+			max-width: 960px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+		}
+		.logo {
+			width: 12px; height: 12px; border-radius: 3px; background: var(--accent);
+			box-shadow: 0 0 18px rgba(0, 227, 132, .7);
+		}
+		.brand { font-weight: 700; letter-spacing: .2px; }
+
+		.container { max-width: 960px; margin: 24px auto 56px; padding: 0 20px; }
+
+		.card {
+			background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+			border: 1px solid rgba(255,255,255,.06);
+			border-radius: 14px;
+			box-shadow: 0 8px 30px rgba(0, 0, 0, .3);
+			padding: 18px;
+		}
+		.card + .card { margin-top: 16px; }
+
+		.label { color: var(--muted); font-size: 13px; margin-bottom: 6px; display: block; }
+		.row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+		@media (min-width: 720px) { .row { grid-template-columns: 1fr 140px 120px; } }
+
+		.input {
+			width: 100%;
+			background: var(--panel-2);
+			color: var(--text);
+			border: 1px solid rgba(255,255,255,.08);
+			border-radius: 10px;
+			padding: 12px 12px;
+			outline: none;
+		}
+		.input:focus { border-color: rgba(0,227,132,.5); box-shadow: 0 0 0 3px rgba(0,227,132,.12); }
+
+		.select, .btn {
+			background: var(--panel-2);
+			color: var(--text);
+			border: 1px solid rgba(255,255,255,.08);
+			border-radius: 10px;
+			padding: 12px;
+			cursor: pointer;
+		}
+		.btn-primary {
+			background: linear-gradient(90deg, var(--accent), var(--accent-2));
+			border: none; color: #0b120e; font-weight: 700;
+			text-shadow: 0 1px 0 rgba(255,255,255,.2);
+		}
+		.btn:disabled { opacity: .6; cursor: not-allowed; }
+
+		.helper { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+		.results { display: grid; gap: 10px; margin-top: 10px; }
+		.result-line {
+			background: var(--panel);
+			border: 1px solid rgba(255,255,255,.06);
+			border-radius: 10px;
+			padding: 12px 12px;
+		}
+		.line-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+		.actions { display: flex; gap: 8px; margin-top: 8px; }
+
+		.spinner { width: 18px; height: 18px; border-radius: 50%; border: 3px solid rgba(255,255,255,.2); border-top-color: var(--accent); animation: spin 1s linear infinite; display: inline-block; }
+		@keyframes spin { to { transform: rotate(360deg); } }
+
+		.toast { position: fixed; right: 16px; bottom: 16px; background: #151a17; color: var(--text); border: 1px solid rgba(0,227,132,.3); box-shadow: 0 8px 24px rgba(0,0,0,.4); border-radius: 10px; padding: 10px 12px; opacity: 0; transform: translateY(8px); transition: .2s ease; }
+		.toast.show { opacity: 1; transform: translateY(0); }
+		.toast.error { background: #1a1414; border-color: rgba(255,77,79,.4); }
+	</style>
+</head>
+<body>
+	<header class="header">
+		<div class="header-inner">
+			<div class="logo"></div>
+			<div class="brand">FiveLiner</div>
+		</div>
+	</header>
+
+	<main class="container">
+		<section class="card">
+			<div class="label">영상 링크</div>
+			<div class="row">
+				<input id="url" class="input" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+				<select id="lang" class="select">
+					<option value="ko" selected>한국어</option>
+					<option value="en">영어</option>
+				</select>
+				<button id="go" class="btn btn-primary">요약하기</button>
+			</div>
+			<div class="helper">YouTube 자막이 없으면 오디오 전사 후 요약합니다. 처음 호출은 시간이 걸릴 수 있어요.</div>
+			<div class="actions">
+				<button id="clear" class="btn">지우기</button>
+				<div id="loading" style="display:none"><span class="spinner"></span> 처리 중…</div>
+			</div>
+		</section>
+
+		<section class="card">
+			<div class="label">요약 결과</div>
+			<div id="results" class="results"></div>
+		</section>
+	</main>
+
+	<div id="toast" class="toast">완료</div>
+
+	<script>
+	const $ = (s) => document.querySelector(s);
+	const url = $('#url');
+	const lang = $('#lang');
+	const go = $('#go');
+	const results = $('#results');
+	const loading = $('#loading');
+	const toast = $('#toast');
+	const clearBtn = $('#clear');
+
+	function showToast(msg, type) {
+		toast.textContent = msg;
+		toast.classList.remove('error');
+		if (type === 'error') toast.classList.add('error');
+		toast.classList.add('show');
+		setTimeout(() => toast.classList.remove('show'), 2200);
+	}
+
+	function setLoading(isLoading) {
+		loading.style.display = isLoading ? 'inline-block' : 'none';
+		go.disabled = isLoading;
+	}
+
+	function renderLines(lines) {
+		results.innerHTML = '';
+		(lines || []).slice(0,5).forEach((text, i) => {
+			const row = document.createElement('div');
+			row.className = 'result-line';
+			const span = document.createElement('div');
+			span.className = 'line-text';
+			span.textContent = `${i+1}. ${text}`;
+			row.appendChild(span);
+			results.appendChild(row);
+		});
+	}
+
+	async function summarize() {
+		const body = { url: url.value, language: lang.value };
+		if (!/^https?:\/\//i.test(body.url || '')) {
+			showToast('올바른 URL을 입력해 주세요', 'error');
+			return;
+		}
+		setLoading(true);
+		try {
+			const res = await fetch('/summarize', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body)
+			});
+			const isJson = res.headers.get('content-type')?.includes('application/json');
+			if (!res.ok) {
+				const msg = isJson ? (await res.json())?.detail : (await res.text());
+				throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+			}
+			const data = isJson ? await res.json() : {};
+			renderLines(data.summary_lines || []);
+			showToast('요약 완료');
+		} catch (e) {
+			showToast(e.message || String(e), 'error');
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	go.addEventListener('click', summarize);
+	url.addEventListener('keydown', (e) => { if (e.key === 'Enter') summarize(); });
+	clearBtn.addEventListener('click', () => { results.innerHTML = ''; url.value = ''; showToast('초기화 완료'); });
+	</script>
+</body>
+</html>
