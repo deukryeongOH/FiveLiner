@@ -15,9 +15,6 @@
 
 
 
-# Video 3-Line Summarizer (FastAPI)
-
-A small FastAPI service: send a short video URL (YouTube prioritized), it fetches transcript and returns a 3-line summary using OpenAI.
 
 ## Setup (Windows)
 
