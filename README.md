@@ -12,3 +12,69 @@
 **5줄 요약: 변환된 텍스트 내용을 핵심적인 5개의 문장으로 간결하게 요약하여 제공한다.**
 
 **다국어 지원: 영어(en)와 한국어(ko)를 포함한 다양한 언어로 요약 기능을 제공한다.**
+
+
+
+# Video 3-Line Summarizer (FastAPI)
+
+A small FastAPI service: send a short video URL (YouTube prioritized), it fetches transcript and returns a 3-line summary using OpenAI.
+
+## Setup (Windows)
+
+1. Install Python 3.10+
+2. In PowerShell:
+
+```powershell
+cd C:\Users\deukr\deep1
+python -m venv .venv
+. .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+3. Set environment variable (replace with your key):
+
+```powershell
+$env:OPENAI_API_KEY = "sk-..."
+```
+
+4. Run the server:
+
+```powershell
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+5. Open the UI:
+- `http://127.0.0.1:8000/static/index.html`
+
+## API
+
+- POST `/summarize`
+
+Request body:
+
+```json
+{ "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "language": "ko" }
+```
+
+Response body:
+
+```json
+{ "summary_lines": ["...","...","..."], "language": "ko" }
+```
+
+## Captions missing? We now fallback automatically
+- First, we try YouTube captions (ko/en, auto-generated if needed).
+- If no captions are available, we automatically download audio via yt-dlp and transcribe using OpenAI (`gpt-4o-mini-transcribe`).
+- This can be slower and uses your OpenAI credits.
+
+### Notes
+- On some videos, yt-dlp may need ffmpeg in PATH for remuxing. If you encounter download errors:
+  - Install ffmpeg and add it to PATH, or install a desktop build like `ffmpeg.exe` and add its folder to PATH.
+- Corporate firewalls/VPN may block downloads.
+- Only use this feature if you’re okay with audio being briefly stored in a temp folder during processing.
+
+
+
+<img width="1686" height="1001" alt="스크린샷 2025-09-18 172457" src="https://github.com/user-attachments/assets/69ed21ca-cd03-48c2-ae13-b3e0e139c7a3" />
+
+<img width="1642" height="1047" alt="스크린샷 2025-09-18 172441" src="https://github.com/user-attachments/assets/dc420528-cc2d-4d22-a1b8-d03cc064676f" />
