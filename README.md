@@ -37,7 +37,7 @@ $env:OPENAI_API_KEY = "sk-..."
 4. Run the server:
 
 ```powershell
-C:/Users/deukr/FiveLiner/.venv/Scripts/python.exe -m uvicorn app.main:app --reload
+프로젝트경로/.venv/Scripts/python.exe -m uvicorn app.main:app --reload
 ```
 
 5. Open the UI:
