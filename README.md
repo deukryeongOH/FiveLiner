@@ -59,6 +59,9 @@ Response body:
 { "summary_lines": ["...","...","..."], "language": "ko" }
 ```
 
+## Error!!
+- yt-dlp 관련 에러 발생 시 최신 yt-dlp 다운로드 권장
+
 ## Captions missing? We now fallback automatically
 - First, we try YouTube captions (ko/en, auto-generated if needed).
 - If no captions are available, we automatically download audio via yt-dlp and transcribe using OpenAI (`gpt-4o-mini-transcribe`).
